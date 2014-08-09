@@ -1,0 +1,33 @@
+<!-- http://jsfiddle.net/brendanowen/uXbn6/8/ -->
+<!-- http://stackoverflow.com/questions/11854514/is-it-possible-to-make-a-tree-view-with-angular -->
+
+<div id="referers" class="row">
+
+  <!-- include recursiu -->
+  <script type="text/ng-template"  id="graph_render.html">
+      <a ng-href="#/referers/{{user.nick}}" class="btn btn-primary">
+        <i class="fa fa-user"></i> &nbsp;
+        {{user.nom + ' ' + user.cognoms}} (<small>{{user.nick}}</small>)
+      </a>
+      <ul>
+          <li ng-repeat="user in user.refered" ng-include="'graph_render.html'"></li>
+      </ul>
+  </script>
+
+  <div class="col-lg-12">
+    <div class="widget">
+      <div class="widget-title">
+        <i class="fa fa-sitemap"></i> Referral graph
+        <button class="btn btn-sm btn-success pull-right" ng-click="generateRefererMap()">Refresh</button>
+        <div class="clearfix"></div>
+      </div>
+      <div class="widget-body">
+        
+        <ul>
+          <li ng-repeat="user in referers" ng-include="'graph_render.html'"></li>
+        </ul>
+
+      </div>
+    </div>
+  </div>
+</div>

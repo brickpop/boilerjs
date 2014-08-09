@@ -1,0 +1,144 @@
+<div id="user">
+
+  <loading ng-show="user === null"></loading>
+
+  <!-- SUMMARY -->
+  <div id="resum" class="row" ng-show="user !== null">
+    <div class="col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-content">
+            <div class="title">{{user.name + ' ' + user.lastname}}</div>
+            <div class="comment"><label>E-mail:</label> <a ng-href="mailto:{{user.email}}">{{user.email}}</a></div>
+            <div class="comment"><label>Address:</label> {{user.adreca}}</div>
+            <div class="comment">{{user.ciutat}} - <a ng-href="tel:{{user.telefon}}">{{user.telefon}}</a></div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon green pull-left">
+            <i class="fa fa-codepen"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{jugador.millorFinal ? jugador.millorFinal.toFixed(0) : '-'}}</div>
+            <div class="comment">Feature 1</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon orange pull-left">
+            <i class="fa fa-cubes"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{jugador.millorEntrenament ? jugador.millorEntrenament.toFixed(0) : '-'}}</div>
+            <div class="comment">Feature 2</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon blue pull-left">
+            <i class="fa fa-codepen"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{jugador.finals}}</div>
+            <div class="comment">Feature 3</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon blue pull-left">
+            <i class="fa fa-cubes"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{jugador.entrenaments}}</div>
+            <div class="comment">Feature 4</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer visible-xs"></div>
+    <div class="col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon blue pull-left">
+            <i class="fa fa-chain-broken"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{jugador.reptes}}</div>
+            <div class="comment">Feature 5</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- -->
+
+  <div class="row" ng-show="jugador !== null">
+    <div class="col-lg-6">
+      <div class="widget">
+        <div class="widget-title"><i class="fa fa-tasks"></i> Activity</div>
+        <div class="widget-body medium no-padding">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <th>Description</th>
+                <th>Date</th>
+              </thead>
+              <tbody>
+                <tr ng-repeat="ev in events"><td><strong>{{ev.nick}}</strong> {{ev.text}}</td><td>{{ev.data | date:'dd/MM HH:mm'}}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- -->
+
+    <div class="col-lg-6" ng-show="jugador !== null">
+      <div class="widget">
+        <div class="widget-title">
+          <i class="fa fa-users"></i> Refered users
+        </div>
+        <div class="widget-body medium no-padding">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Score</th>
+              </thead>
+              <tbody>
+                <tr ng-repeat="rf in referers">
+                  <td><a ng-href="#/{{origin}}/{{rf.nick}}">{{rf.nom + ' ' + rf.cognoms}}</a></td>
+                  <td><a ng-href="#/{{origin}}/{{rf.nick}}">{{rf.nick}}</a></td>
+                  <td><a ng-href="#/{{origin}}/{{rf.nick}}">{{rf.millorFinal ? rf.millorFinal.toFixed(0) : '-'}}</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

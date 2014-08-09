@@ -1,0 +1,40 @@
+
+<!-- LIST 1 -->
+
+<div id="jugadores" class="row">
+
+  <div class="col-lg-12">
+    <div class="widget">
+      <div class="widget-title">
+        <i class="fa fa-users"></i> Active Users
+        <!--input type="text" placeholder="Search" class="form-control input-sm pull-right" /-->
+        <div class="clearfix"></div>
+      </div>
+      <div class="widget-body medium no-padding">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr ng-if="users">
+                <th>#</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <loading ng-if="!users"></loading>
+
+              <tr ng-repeat="jug in users">
+                <td><a ng-href="#/jugadores/{{jug.nick}}">{{($index+1)}}</a></td>
+                <td><a ng-href="#/jugadores/{{jug.nick}}">{{jug.nom + ' ' + jug.cognoms}}</a></td>
+                <td><a ng-href="#/jugadores/{{jug.nick}}">{{jug.nick}}</a></td>
+                <td><a ng-href="#/jugadores/{{jug.nick}}">{{jug.millorFinal.toFixed(0)}}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

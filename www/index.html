@@ -1,0 +1,65 @@
+<!doctype html>
+<!--[if lt IE 7]>
+<html class="no-js lt-ie9 lt-ie8 lt-ie7">
+<![endif]-->
+<!--[if IE 7]>
+<html class="no-js lt-ie9 lt-ie8">
+<![endif]-->
+<!--[if IE 8]>
+<html class="no-js lt-ie9">
+<![endif]-->
+<!--[if gt IE 8]>
+<!-->
+<html class="no-js" lang="es" ng-app="admin">
+<!--<![endif]-->
+
+<head>
+	<meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Combate la Diabetes</title>
+
+  <!-- MODERNIZR -->
+  <script src="vendor/modernizr.min.js"></script> 
+
+  <link rel="stylesheet" type="text/css" href="vendor/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="vendor/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="styles/dashboard/dashboard.css">
+  <link rel="stylesheet" type="text/css" href="styles/themes/blue.css">
+  <!--
+  <link rel="stylesheet" type="text/css" href="styles/themes/green.css">
+  <link rel="stylesheet" type="text/css" href="styles/themes/red.css">
+  -->
+  <link rel="stylesheet" type="text/css" href="styles/index.css">
+
+  <!--[if lt IE 9]>
+     <script src="//ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
+  <![endif]-->
+
+  <script type="text/javascript" src="vendor/angular.min.js"></script>
+  <script type="text/javascript" src="vendor/angular-cookies.min.js"></script>
+  <script type="text/javascript" src="vendor/angular-route.min.js"></script>
+  <script type="text/javascript" src="vendor/angular-animate.min.js"></script>
+  <script type="text/javascript" src="vendor/ng-bootstrap-tpls.min.js"></script>
+  <script type="text/javascript" src="scripts/api.js"></script>
+  <script type="text/javascript" src="scripts/index.js"></script>
+
+</head>
+<body ng-controller="MainCtrl">
+  <div id="page-wrapper" ng-class="{'active': toggle}" ng-cloak>
+
+    <div id="content-wrapper">
+      <div class="page-content">
+
+        <div ng-include="'views/sidebar.html'"></div>
+
+        <div ng-include="'views/header.html'"></div>
+
+        <div ng-view autoscroll="true" class="view-slide-in"></div>
+
+      </div><!-- End Page Content -->
+    </div><!-- End Content Wrapper -->
+  </div><!-- End Page Wrapper -->
+</body>
+</html>
