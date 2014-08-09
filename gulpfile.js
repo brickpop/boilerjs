@@ -13,125 +13,148 @@ var gulp = require('gulp'),
     cache = require('gulp-cache'),
     htmlmin = require('gulp-htmlmin'),
     mocha = require('gulp-mocha'),
-    shell = require('gulp-shell');
+    shell = require('gulp-shell'),
+    nodemon = require('gulp-nodemon');
 
-// Styles
-gulp.task('styles', function() {
-  return gulp.src(['www/vendor/**/*.css', 'www/styles/index.css', 'www/styles/index.scss'])
+
+// Media
+gulp.task('images', function() {
+  return gulp.src('www/media/**/*.jpg', 'www/media/**/*.jpeg', 'www/media/**/*.png', 'www/media/**/*.gif', 'www/media/**/*.tiff')
+    .pipe(cache(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })))
+    .pipe(gulp.dest('compiled_www/media'));
+});
+
+// STYLE
+gulp.task('scss', function() {
+  return gulp.src(['www/styles/index.scss', 'www/styles/dashboard/*.css', 'www/styles/themes/blue.css'])
     .pipe(sass({ style: 'expanded' }))
+    .pipe(concat('index.css'))
     .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 2.3'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(minifycss())
-    .pipe(gulp.dest('www/styles'));
+    .pipe(gulp.dest('compiled_www/styles'));
 });
 
-// JSHint
+// MARKUP
+gulp.task('jade', function() {
+  var localSymbols = {};
+
+  return gulp.src('www/**/*.jade')
+  .pipe(jade({
+    locals: localSymbols
+  }))
+  .pipe(gulp.dest('compiled_www/'))
+});
+
+gulp.task('html', function() {
+  return gulp.src(['www/**/*.html'])
+    .pipe(htmlmin({collapseWhitespace: true}))
+    .pipe(gulp.dest('compiled_www/'));
+});
+
+// JAVASCRIPT
 gulp.task('jshint', function() {
-  return gulp.src(['app/scripts/**/*.js'])
+  return gulp.src(['app.js', 'controllers/**/*.js', 'models/**/*.js', 'www/scripts/**/*.js'])
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('default'));
 });
 
-// Scripts
-gulp.task('scripts', ['jshint', 'vendor'], function() {
-  return gulp.src(['app/scripts/**/*.js'])
+gulp.task('javascript', function() {
+  return gulp.src(['www/scripts/**/*.js'])
     .pipe(concat('index.js'))
-    .pipe(gulp.dest('dist/scripts'))
+    .pipe(gulp.dest('compiled_www/scripts'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(uglify({mangle: false}))
-    .pipe(gulp.dest('dist/scripts'));
+    .pipe(gulp.dest('compiled_www/scripts'));
 });
 
-gulp.task('vendor', ['modernizr'], function() {
-  return gulp.src(['app/vendor/*.js', '!app/vendor/modernizr.min.js', 
-      'app/vendor/angular/angular.js', 'app/vendor/angular/angular-route.js', 'app/vendor/angular/angular-animate.js', 'app/vendor/moment.js'])
-    .pipe(concat('vendor.js'))
-    .pipe(gulp.dest('dist/vendor'))
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(uglify())
-    .pipe(gulp.dest('dist/vendor'));
-});
-
+// VENDOR
 gulp.task('modernizr', function() {
-  return gulp.src(['app/vendor/modernizr.min.js'])
-    .pipe(gulp.dest('dist/vendor'));
+  return gulp.src(['www/vendor/modernizr.min.js'])
+    .pipe(gulp.dest('compiled_www/scripts'));
 });
 
+gulp.task('jsVendor', function() {
+  gulp.src('www/vendor/*.map')
+  .pipe(gulp.dest('compiled_www/scripts'));
 
-// Images
-gulp.task('images', function() {
-  return gulp.src('app/img/**/*')
-    .pipe(cache(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })))
-    .pipe(gulp.dest('dist/img'));
+  return gulp.src(['www/vendor/angular.min.js', 'www/vendor/angular-animate.min.js', 
+    'www/vendor/angular-cookies.min.js', 'www/vendor/angular-route.min.js', 'www/vendor/ng-bootstrap-tpls.min.js'])
+    .pipe(concat('vendor.min.js'))
+    .pipe(gulp.dest('compiled_www/scripts'));
 });
 
-// HTML
-gulp.task('html', function() {
-  return gulp.src(['app/**/*.html'])
-    .pipe(htmlmin({collapseWhitespace: true}))
-    .pipe(gulp.dest('dist/'));
-});
-   
-  
-
-// PHP
-gulp.task('php', function() {
-  return gulp.src(['app/**/*.php'])
-    .pipe(gulp.dest('dist/'));
+gulp.task('cssVendor', function() {
+  return gulp.src(['www/vendor/**/*.css'])
+    .pipe(concat('vendor.min.css'))
+    .pipe(minifycss())
+    .pipe(gulp.dest('compiled_www/styles'));
 });
 
-// Test
-gulp.task('test', function () {
-    gulp.src('test/index.js')
-        .pipe(mocha({reporter: 'nyan'}));
+gulp.task('fontVendor', function() {
+  return gulp.src(['www/fonts/*'])
+    .pipe(gulp.dest('compiled_www/fonts'));
 });
 
 // Clean
 gulp.task('clean', function() {
-  return gulp.src(['dist/**/*.html', 'dist/**/*.php', 'dist/lib', 'dist/views', 'dist/styles', 'dist/scripts', 'dist/img'], {read: false})
+  return gulp.src(['compiled_www/*'], {read: false})
     .pipe(clean());
 });
 
-// Default task
-gulp.task('default', ['clean'], function() {
-    gulp.start('html', 'php', 'styles', 'scripts', 'images');
+// Groups
+gulp.task('vendor', function() {
+  gulp.start('modernizr', 'jsVendor', 'cssVendor', 'fontVendor');
 });
 
-// Deploy PRO
-gulp.task('pro', shell.task([
-  // 'gulp clean && gulp && echo "Copiant fitxers a /var/www/combate" && cp -R ./dist/* /var/www/combate/'
-  'gulp clean && gulp && echo "Copiant fitxers a /var/www/html" && cp -R ./dist/* /var/www/html/'
+gulp.task('scripts', function() {
+  gulp.start('jshint', 'javascript');
+});
+
+gulp.task('markup', function() {
+  gulp.start('jade', 'html');
+});
+
+gulp.task('styles', function() {
+  gulp.start('scss');
+});
+
+gulp.task('main', ['clean'], function() {
+  gulp.start('scripts', 'markup', 'styles', 'images', 'vendor');
+});
+
+// Default task
+gulp.task('default', function() {
+  console.log("\nAvailable actions:\n");
+  console.log("   $ gulp debug");
+  console.log("   $ gulp start");
+  console.log("   $ gulp restart");
+  console.log("   $ gulp stop");
+  console.log("   $ gulp test\n");
+});
+
+// MAIN TASKS
+gulp.task('debug', ['main'], function () {
+  nodemon({ script: 'app.js', ext: 'html jade js css scss ', ignore: ['compiled_www'] })
+    .on('change', ['main'])
+    .on('restart', function () {
+      console.log('App restarted')
+    })
+});
+
+gulp.task('start', ['main'], shell.task([
+  'forever start app.js'
 ]));
 
-// Deploy DEV
-gulp.task('dev', shell.task([
-  'gulp clean && gulp && echo "Copiant fitxers a /var/www/combatedev" && cp -R ./dist/* /var/www/combatedev/'
+gulp.task('restart', ['main'], shell.task([
+  'forever restart app.js'
 ]));
 
-// Watch
-gulp.task('watch', function() {
+gulp.task('stop', shell.task([
+  'forever stop app.js'
+]));
 
-  // Watch .scss files
-  gulp.watch('app/**/*.html', ['html']);
-
-  // Watch .scss files
-  gulp.watch('app/**/*.php', ['php']);
-
-  // Watch .scss files
-  gulp.watch('app/styles/**/*.scss', ['styles']);
-
-  // Watch .js files
-  gulp.watch('app/scripts/**/*.js', ['scripts']);
-
-  // Watch image files
-  gulp.watch('app/img/**/*', ['images']);
-
-  // Create LiveReload server
-  var server = livereload();
-
-  // Watch any files in dist/, reload on change
-  gulp.watch(['dist/**']).on('change', function(file) {
-    server.changed(file.path);
-  });
-
+gulp.task('test', ['main'], function () {
+    gulp.src('test/index.js')
+        .pipe(mocha({reporter: 'nyan'}));
 });

@@ -49,7 +49,7 @@ app.configure(function(){
   if(parameters.httpUser && parameters.httpPassword) {
 	  app.use(express.basicAuth(parameters.httpUser, parameters.password));
   }
-  app.use(express.static('./www'));
+  app.use(express.static('./compiled_www'));
 });
 
 // REST CALLS
