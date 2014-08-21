@@ -12,7 +12,7 @@ var parameters = {
 
 	// Mongo DB
 	dbHost: "localhost",
-	dbName: "combate",
+	dbName: "mydatabase",
 	dbUser: "",
 	dbPassword: "",
 
@@ -43,13 +43,13 @@ else
 
 // SERVER SETTINGS
 app.configure(function(){
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  if(parameters.httpUser && parameters.httpPassword) {
-	  app.use(express.basicAuth(parameters.httpUser, parameters.password));
-  }
-  app.use(express.static('./compiled_www'));
+	app.use(express.bodyParser());
+	app.use(express.methodOverride());
+	app.use(app.router);
+	if(parameters.httpUser && parameters.httpPassword) {
+		app.use(express.basicAuth(parameters.httpUser, parameters.password));
+	}
+	app.use(express.static('./public'));
 });
 
 // REST CALLS
@@ -76,4 +76,5 @@ if(parameters.useHttps) {
 	httpsServer.listen(parameters.httpsPort);
 }
 
-console.log("Server listening on ", parameters.useHttp ? parameters.httpPort : "", parameters.useHttps ? parameters.httpsPort : "");
+console.log("Server listening on", parameters.useHttp ? parameters.httpPort : "", parameters.useHttps ? parameters.httpsPort : "");
+

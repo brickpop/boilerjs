@@ -21,7 +21,7 @@ var gulp = require('gulp'),
 gulp.task('images', function() {
   return gulp.src('www/media/**/*.jpg', 'www/media/**/*.jpeg', 'www/media/**/*.png', 'www/media/**/*.gif', 'www/media/**/*.tiff')
     .pipe(cache(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })))
-    .pipe(gulp.dest('compiled_www/media'));
+    .pipe(gulp.dest('public/media'));
 });
 
 // STYLE
@@ -32,7 +32,7 @@ gulp.task('scss', function() {
     .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 2.3'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(minifycss())
-    .pipe(gulp.dest('compiled_www/styles'));
+    .pipe(gulp.dest('public/styles'));
 });
 
 // MARKUP
@@ -43,18 +43,18 @@ gulp.task('jade', function() {
   .pipe(jade({
     locals: localSymbols
   }))
-  .pipe(gulp.dest('compiled_www/'))
+  .pipe(gulp.dest('public/'))
 });
 
 gulp.task('html', function() {
   return gulp.src(['www/**/*.html'])
     .pipe(htmlmin({collapseWhitespace: true}))
-    .pipe(gulp.dest('compiled_www/'));
+    .pipe(gulp.dest('public/'));
 });
 
 // JAVASCRIPT
 gulp.task('jshint', function() {
-  return gulp.src(['app.js', 'controllers/**/*.js', 'models/**/*.js', 'www/scripts/**/*.js'])
+  return gulp.src(['server.js', 'controllers/**/*.js', 'models/**/*.js', 'www/scripts/**/*.js'])
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('default'));
 });
@@ -62,43 +62,43 @@ gulp.task('jshint', function() {
 gulp.task('javascript', function() {
   return gulp.src(['www/scripts/**/*.js'])
     .pipe(concat('index.js'))
-    .pipe(gulp.dest('compiled_www/scripts'))
+    .pipe(gulp.dest('public/scripts'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(uglify({mangle: false}))
-    .pipe(gulp.dest('compiled_www/scripts'));
+    .pipe(gulp.dest('public/scripts'));
 });
 
 // VENDOR
 gulp.task('modernizr', function() {
   return gulp.src(['www/vendor/modernizr.min.js'])
-    .pipe(gulp.dest('compiled_www/scripts'));
+    .pipe(gulp.dest('public/scripts'));
 });
 
 gulp.task('jsVendor', function() {
   gulp.src('www/vendor/*.map')
-  .pipe(gulp.dest('compiled_www/scripts'));
+  .pipe(gulp.dest('public/scripts'));
 
   return gulp.src(['www/vendor/angular.min.js', 'www/vendor/angular-animate.min.js', 
     'www/vendor/angular-cookies.min.js', 'www/vendor/angular-route.min.js', 'www/vendor/ng-bootstrap-tpls.min.js'])
     .pipe(concat('vendor.min.js'))
-    .pipe(gulp.dest('compiled_www/scripts'));
+    .pipe(gulp.dest('public/scripts'));
 });
 
 gulp.task('cssVendor', function() {
   return gulp.src(['www/vendor/**/*.css'])
     .pipe(concat('vendor.min.css'))
     .pipe(minifycss())
-    .pipe(gulp.dest('compiled_www/styles'));
+    .pipe(gulp.dest('public/styles'));
 });
 
 gulp.task('fontVendor', function() {
   return gulp.src(['www/fonts/*'])
-    .pipe(gulp.dest('compiled_www/fonts'));
+    .pipe(gulp.dest('public/fonts'));
 });
 
 // Clean
 gulp.task('clean', function() {
-  return gulp.src(['compiled_www/*'], {read: false})
+  return gulp.src(['public/*'], {read: false})
     .pipe(clean());
 });
 
@@ -126,16 +126,16 @@ gulp.task('main', ['clean'], function() {
 // Default task
 gulp.task('default', function() {
   console.log("\nAvailable actions:\n");
-  console.log("   $ gulp debug");
-  console.log("   $ gulp start");
-  console.log("   $ gulp restart");
-  console.log("   $ gulp stop");
-  console.log("   $ gulp test\n");
+  console.log("   $ gulp dev            Start the app locally and reload with Nodemon");
+  console.log("   $ gulp test           Run the test suite located on test/index.js\n");
+  console.log("   $ gulp start          Start the server as a daemon");
+  console.log("   $ gulp restart        Start the server");
+  console.log("   $ gulp stop           Stop the server\n");
 });
 
 // MAIN TASKS
-gulp.task('debug', ['main'], function () {
-  nodemon({ script: 'app.js', ext: 'html jade js css scss ', ignore: ['compiled_www'] })
+gulp.task('dev', ['main'], function () {
+  nodemon({ script: 'server.js', ext: 'html jade js css scss ', ignore: ['public'] })
     .on('change', ['main'])
     .on('restart', function () {
       console.log('App restarted')
@@ -143,15 +143,15 @@ gulp.task('debug', ['main'], function () {
 });
 
 gulp.task('start', ['main'], shell.task([
-  'forever start app.js'
+  'forever start server.js'
 ]));
 
 gulp.task('restart', ['main'], shell.task([
-  'forever restart app.js'
+  'forever restart server.js'
 ]));
 
 gulp.task('stop', shell.task([
-  'forever stop app.js'
+  'forever stop server.js'
 ]));
 
 gulp.task('test', ['main'], function () {
