@@ -5,11 +5,20 @@ angular.module('admin.services', [])
 
 .factory('API', function($http) {
   return {
-    users: function(){
+    listUsers: function() {
 		return $http.get("/api/users");
     },
-    user: function(username){
-		return $http.get("/api/users/" + username);
+    getUser: function(id) {
+		return $http.get("/api/users/" + id);
+    },
+    newUser: function(user) {
+		return $http.post("/api/users", user);
+    },
+    updateUser: function(id, user) {
+		return $http.put("/api/users/" + id, user);
+    },
+    deleteUser: function(id) {
+		return $http.delete("/api/users/" + id);
     },
     events: function(){
 		return $http.get("/api/events");

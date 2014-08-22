@@ -1,80 +1,154 @@
+#!/bin/env node
 
-// PARAMETERS
-var parameters = {
-
-	// FEATURES
-	useHttp: true,
-	useHttps: false,
-
-	// PORTS
-	httpPort: 8080,
-	httpsPort: 8443,
-
-	// Mongo DB
-	dbHost: "localhost",
-	dbName: "mydatabase",
-	dbUser: "",
-	dbPassword: "",
-
-	// HTTP Authentication
-	httpUser: "",
-	httpPassword: "",
-
-	// SSL Certificates
-	keyFile: '/etc/pki/tls/private/localhost.key',
-	certFile: '/etc/pki/tls/certs/localhost.crt'
-};
-
-// DEPENDENCIES 
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
 var express = require('express');
 var mongoose = require('mongoose');
-var api = require('./controllers/api.js');
-
-var app = module.exports = express();
-
-// DATABASE
-if(parameters.dbUser && parameters.dbPassword)
-	mongoose.connect('mongodb://' + parameters.dbUser + ':' + parameters.dbPassword + '@' + parameters.dbHost + '/' + parameters.dbName);
-else
-	mongoose.connect('mongodb://' + parameters.dbHost + '/' + parameters.dbName);
-
-// SERVER SETTINGS
-app.configure(function(){
-	app.use(express.bodyParser());
-	app.use(express.methodOverride());
-	app.use(app.router);
-	if(parameters.httpUser && parameters.httpPassword) {
-		app.use(express.basicAuth(parameters.httpUser, parameters.password));
-	}
-	app.use(express.static('./public'));
-});
-
-// REST CALLS
-app.get('/api/users', api.users);
-app.get('/api/users/:username', api.user);
-app.get('/api/events', api.events);
+var api = require(__dirname + '/server.api.js');
+var cache = require(__dirname + '/server.cache.js');
 
 
-// SSL
-if(parameters.useHttps) {
-	var privateKey  = fs.readFileSync(parameters.keyFile, 'utf8');
-	var certificate = fs.readFileSync(parameters.certFile, 'utf8');
-	var credentials = {key: privateKey, cert: certificate};
-}
+var TemplateApp = function() {
 
-// START SERVER
-var httpServer, httpServer;
-if(parameters.useHttp) {
-	httpServer = http.createServer(app);
-	httpServer.listen(parameters.httpPort);
-}
-if(parameters.useHttps) {
-	httpsServer = https.createServer(credentials, app);
-	httpsServer.listen(parameters.httpsPort);
-}
+    var self = this;
 
-console.log("Server listening on", parameters.useHttp ? parameters.httpPort : "", parameters.useHttps ? parameters.httpsPort : "");
+    self.setupVariables = function() {
+
+        self.path = __dirname;
+
+        self.httpPort = 8080;
+        self.httpsPort = 8443;
+
+        self.useHttp = true;
+        self.useHttps = false;
+        self.useMongoDB = true;
+
+        // Mongo DB
+        self.dbHost = "localhost";
+        self.dbName = "dbname";
+        self.dbUser = "";
+        self.dbPassword = "";
+
+        // HTTP Authentication
+        self.httpUser = "";
+        self.httpPassword = "";
+
+		// SSL Certificates
+		self.keyFile = '/etc/pki/tls/private/localhost.key';
+		self.certFile = '/etc/pki/tls/certs/localhost.crt';
+    };
+
+    // LIFECYCLE
+    self.terminator = function(signal){
+        if (typeof signal === "string") {
+         console.log('%s: Received %s - terminating app ...', Date(Date.now()), signal);
+         process.exit(1);
+     }
+     console.log('%s: Node server stopped.', Date(Date.now()) );
+ };
+
+ self.initializeTerminationHandlers = function(){
+
+    process.on('exit', function() { self.terminator(); });
+
+        // Removed 'SIGPIPE' from the list - bugz 852598.
+        ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
+        'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
+        ].forEach(function(element, index, array) {
+            process.on(element, function() { self.terminator(element); });
+        });
+    };
+
+    // SERVER
+    self.initializeCacheRoutes = function() {
+
+        // see server.cache.js
+        var cacheRoutes = cache.getRoutes();
+        for (var c in cacheRoutes) {
+            self.app.get(c, cacheRoutes[c]);
+        }
+    }; 
+
+    self.initializeAPIRoutes = function() {
+
+        // see server.api.js
+        // automatic generator for app.get('/api/users', func_name), ...
+
+        var apiRoutes = api.getRoutes();
+        for(var g in apiRoutes.get) {
+            self.app.get(g, apiRoutes.get[g]);
+        }
+        for(var p in apiRoutes.post) {
+            self.app.post(p, apiRoutes.post[p]);
+        }
+        for(var t in apiRoutes.put) {
+            self.app.put(t, apiRoutes.put[t]);
+        }
+        for(var d in apiRoutes.delete) {
+            self.app.delete(d, apiRoutes.delete[d]);
+        }
+    };
+
+    self.initializeServer = function() {
+
+        self.app = express();
+
+        // SERVER SETTINGS
+        self.app.configure(function(){
+          self.app.use(express.bodyParser());
+          self.app.use(express.methodOverride());
+          self.app.use(self.app.router);
+
+          if(self.httpUser && self.httpPassword) {
+              self.app.use(express.basicAuth(self.httpUser, self.password));
+          }
+          self.app.use(express.static('./public'));
+      });
+
+        self.initializeCacheRoutes();
+        self.initializeAPIRoutes();
+
+        // SSL
+        if(self.useHttps) {
+            self.privateKey  = fs.readFileSync(parameters.keyFile, 'utf8');
+            self.certificate = fs.readFileSync(parameters.certFile, 'utf8');
+            self.sslCredentials = {key: privateKey, cert: certificate};
+        }
+
+        // DATABASE
+        if(self.useMongoDB && self.dbUser && self.dbPassword)
+            mongoose.connect('mongodb://' + self.dbUser + ':' + self.dbPassword + '@' + self.dbHost + '/' + self.dbName);
+        else if(self.useMongoDB)
+            mongoose.connect('mongodb://' + self.dbHost + '/' + self.dbName);
+    };
+
+    self.initialize = function() {
+        self.setupVariables();
+        cache.populate();
+        self.initializeTerminationHandlers();
+        self.initializeServer();
+    };
+
+    self.start = function() {
+
+        // START SERVER
+        var httpServer, httpsServer;
+        if(self.useHttp) {
+         httpServer = http.createServer(self.app);
+         httpServer.listen(self.httpPort);
+     }
+     if(self.useHttps) {
+         httpsServer = https.createServer(sslCredentials, self.app);
+         httpsServer.listen(self.httpsPort);
+     }
+
+     console.log("Server listening on port", self.useHttp ? self.httpPort : "", self.useHttps ? self.httpsPort : "");
+ };
+};
+
+// MAIN
+var zapp = new TemplateApp();
+zapp.initialize();
+zapp.start();
 

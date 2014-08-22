@@ -1,0 +1,39 @@
+
+<!-- USER LIST -->
+
+<div id="users" class="row">
+
+  <div class="col-lg-12">
+    <div class="widget">
+      <div class="widget-title">
+        <i class="fa fa-users"></i> Active users
+        <div class="clearfix"></div>
+      </div>
+      <div class="widget-body medium no-padding">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr ng-if="users">
+                <th>#</th>
+                <th>Name</th>
+                <th>Nick</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <loading ng-if="!users"></loading>
+
+              <tr ng-repeat="user in users">
+                <td><a ng-href="#/users/{{user.nick}}">{{($index+1)}}</a></td>
+                <td><a ng-href="#/users/{{user.nick}}">{{user.name + ' ' + user.lastname}}</a></td>
+                <td><a ng-href="#/users/{{user.nick}}">{{user.nick}}</a></td>
+                <td><a ng-href="#/users/{{user.nick}}">{{user.score.toFixed(0)}}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

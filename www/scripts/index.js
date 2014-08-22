@@ -12,11 +12,11 @@ app.config(function($routeProvider) {
 		controller: 'SummaryCtrl'
 	})
 	.when('/users', {
-		templateUrl: 'views/jugadors.html',
+		templateUrl: 'views/users.html',
 		controller: 'ListCtrl'
 	})
 	.when('/users/:nick', {
-		templateUrl: 'views/jugador.html',
+		templateUrl: 'views/user.html',
 		controller: 'PlayerCtrl'
 	})
 	.when('/activity', {
@@ -28,7 +28,7 @@ app.config(function($routeProvider) {
 		controller: 'ReferersCtrl'
 	})
 	.when('/referers/:nick', {
-		templateUrl: 'views/jugador.html',
+		templateUrl: 'views/user.html',
 		controller: 'RefererCtrl'
 	})
 	.otherwise({
@@ -92,27 +92,29 @@ app.controller('ListCtrl', function($scope, API, DATA) {
 
     $scope.$parent.breadcrumbs = "Home / Users";
 
-	API.users()
-	.success(function(obj, status, headers, config) {
+	API.listUsers()
+	.success(function(users, status, headers, config) {
 		if(status != 200) {
 			location.hash = "/";
 			return;
 		}
-		if(typeof obj == "object") {
-
+		if(typeof users == "object") {
+			if(users.error) {
+				alert("Error: " + users.error);
+				return;
+			}
 			$scope.users = [];
 
-			for(var i = 0; i < obj.length; i++) {
-				obj[i].data = new Date(obj[i].data);
+			for(var i = 0; i < users.length; i++) {
+				users[i].data = new Date(users[i].data);
 				
-				$scope.users.push(obj[i]);
+				$scope.users.push(users[i]);
 			}
-			DATA.users = obj;
+			DATA.users = users;
 		}
 	})
-	.error(function(obj, status, headers, config) {
-		// Error de servidor o de xarxa
-		// location.hash = "/welcome";
+	.error(function(object, status, headers, config) {
+		// Network or server error
 		alert("Unable to connect to the server");
 	});
 });
@@ -136,7 +138,7 @@ var makeUserController = function(sectionOrigin) {
 		else
 		    $scope.$parent.breadcrumbs = "Home / Referers / " + $routeParams.nick;
 
-	    API.user($routeParams.nick)
+	    API.getUser($routeParams.nick)
 	    .success(function(obj, status, headers, config) {
 	    	if(status == 200 && typeof obj == "object") {
 	    		$scope.user = obj;

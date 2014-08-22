@@ -6,7 +6,7 @@ var mongoose = require('mongoose'),
    ObjectId = Schema.ObjectId;
 
 var userSchema = new Schema({
-    state: {
+    status: {
         type: 'String',
         required: true,
         enum: ['active', 'temporary', 'inactive'],

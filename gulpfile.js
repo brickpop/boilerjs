@@ -119,42 +119,45 @@ gulp.task('styles', function() {
   gulp.start('scss');
 });
 
-gulp.task('main', ['clean'], function() {
+gulp.task('make', ['clean'], function() {
   gulp.start('scripts', 'markup', 'styles', 'images', 'vendor');
 });
 
 // Default task
 gulp.task('default', function() {
   console.log("\nAvailable actions:\n");
-  console.log("   $ gulp dev            Start the app locally and reload with Nodemon");
-  console.log("   $ gulp test           Run the test suite located on test/index.js\n");
-  console.log("   $ gulp start          Start the server as a daemon");
-  console.log("   $ gulp restart        Start the server");
-  console.log("   $ gulp stop           Stop the server\n");
+  console.log("   $ gulp make       Compile the web files to 'public'");
+  console.log("   $ gulp dev        Start the app locally and reload with Nodemon");
+  console.log("   $ gulp test       Run the test suite located on test/index.js\n");
+  console.log("  ");
+  console.log("   $ gulp start      Start the server as a daemon");
+  console.log("   $ gulp restart    Restart the server");
+  console.log("   $ gulp stop       Stop the server\n");
+  console.log("  ");
 });
 
 // MAIN TASKS
-gulp.task('dev', ['main'], function () {
+gulp.task('dev', ['make'], function () {
   nodemon({ script: 'server.js', ext: 'html jade js css scss ', ignore: ['public'] })
-    .on('change', ['main'])
+    .on('change', ['make'])
     .on('restart', function () {
       console.log('App restarted')
     })
 });
 
-gulp.task('start', ['main'], shell.task([
-  'forever start server.js'
+gulp.task('start', ['make'], shell.task([
+  'forever start server.js 2>/dev/null || node server.js'
 ]));
 
-gulp.task('restart', ['main'], shell.task([
-  'forever restart server.js'
+gulp.task('restart', ['make'], shell.task([
+  'forever restart server.js 2>/dev/null || echo "The forever command is not installed.\nTo stop the server, just hit Ctrl+C in the terminal where your Node app is running and launch it again" '
 ]));
 
 gulp.task('stop', shell.task([
-  'forever stop server.js'
+  'forever stop server.js 2>/dev/null || echo "The forever command is not installed.\nTo stop the server, just hit Ctrl+C in the terminal where your Node app is running" '
 ]));
 
-gulp.task('test', ['main'], function () {
+gulp.task('test', ['make'], function () {
     gulp.src('test/index.js')
         .pipe(mocha({reporter: 'nyan'}));
 });
