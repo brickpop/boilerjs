@@ -93,11 +93,11 @@ The parameters of the server are defined in ```server.js```
 
 ##### Notes:
 
-* HTTP/HTTPS ports must be greated than 1024 (unless you run the app with root privileges)
-	* Normally you'll use a proxy from ports 80/443 to the port defined here
-* If the MongoDB user/password are empty, the server will attempt to connect without them
+* HTTP/HTTPS ports must be greater than ```1024`` (unless you run the app with root privileges)
+	* Normally you'll set up a proxy server (Apache/nginx) binding the ports 80/443 to the ones defined above
+* If the MongoDB user/password are empty, the server will attempt to connect without authentication
 * If the HTTP user/password are empty, no HTTP authentication will be requested
-* If useHttp is false, the keyFile/certFile files will not be read/used
+* If ```useHttp``` is false, the keyFile/certFile files will not be read/used
 
 ### Creating a model
 
@@ -131,7 +131,7 @@ Let's create (or edit) a file inside the ```models/``` folder with the data sche
 
 We just created a model called ```User``` which will operate on the ```users``` collection on the server. 
 
-### Using the model in an API call 
+### Using the model in an API callback 
 In the file ```server.api.js``` let's import our new model. Next, we will export a function that generates a list of all the registered users.
 
 	var User = require('./models/user.js');
@@ -153,10 +153,10 @@ This callback will send a JSON response with a list of the users whose status is
 
 For more information about querying with Mongoose [visit this link](http://mongoosejs.com/docs/queries.html).
 
-### Enabling an API route to handle the callback
-At the bottom of the same file (```server.api.js```), let's locate the function ```getRoutes``` and add a route+callback for the function we just added.
+### Enabling the new callback to handle an API route
+At the bottom of the same file (```server.api.js```), let's locate the function ```getRoutes``` and declare a route+callback(s) for the function we just added.
 
-Depending on the HTTP that we need, it will be added in the corresponding section (GET, POST, PUT, DELETE).
+Depending on the HTTP method that we need, we will add it in its corresponding section (GET, POST, PUT, DELETE).
 
     // API ROUTE LIST
     exports.getRoutes = function () {
@@ -179,17 +179,17 @@ Depending on the HTTP that we need, it will be added in the corresponding sectio
       };
     };
 
-Now, when a request is made to ```/api/users``` the new function we defined will handle the result.
+Now, when a request is made to ```/api/users``` the new function will handle the result.
 
-Some functions may need to check various conditions before they serve the actual data (login status). That's why instead of assigning the path to a single callback, this block allows to define an (ordered) array of them. 
+Some functions may need to check various conditions before they serve the actual data (authentication status). That's why instead of assigning the path to a single callback, this block allows to define an (ordered) array of them. 
 
-This allows us to perform validation checks in earlier callbacks that will interrupt the request if something is wrong. For example:
+This allows us to perform validation checks in earlier callbacks that will interrupt the request if something is wrong. For example, if we added a callback before handling the user creation:
 
 	post: {
           '/api/users': [ checkLogin, exports.createUser ],
           ...
 
-```checkLogin``` will handle the request before passing the control to ```exports.createUser```. So the first function might look like that: 
+```checkLogin``` would handle the request before passing the control to ```exports.createUser```. So the first function might look like that: 
 
 	function checkLogin(req, res, next) {
 	  if (req.session.user) {
@@ -199,21 +199,21 @@ This allows us to perform validation checks in earlier callbacks that will inter
 	    res.redirect('/login');
 	  }
 	}
-When an ExpressJS callback ends with ```next()```, the next callback is executed (in this case ```createUser```). If a response is sent, no further processing is performed. 
+When an ExpressJS callback ends with ```next()```, the next callback is executed (in this case ```exports.createUser```). If a response is sent, no further processing is performed. 
 
-[See this link](https://github.com/strongloop/express/blob/master/examples/auth/app.js) for a complete ExpressJS authentication example. 
+[See this link](https://github.com/strongloop/express/blob/master/examples/auth/app.js) for a complete ExpressJS session management example. 
 
 
 
 
 ## Frontend
 ### API calls
-To use the API we just defined, first we need to edit ```www/scripts/api.js``` and create a new entry on the API factory. It must match the URL path we defined previously and provide the necessary parameters (if any).
+To use the API we defined on the backent, first we need to edit ```www/scripts/api.js``` and create a new entry on the API factory. It must match the URL path we chose previously and provide the necessary parameters (if any).
 
 	.factory('API', function($http) {
 	  return {
-	    listUsers: function() {
-			return $http.get("/api/users");   // <<< THE NEW API
+	    listUsers: function() {                  // <<< THE NEW FUNCTION
+			return $http.get("/api/users");      // <<< THE NEW API
 	    },
 	    getUser: function(id) {
 			return $http.get("/api/users/" + id);
@@ -236,6 +236,8 @@ From now on, any Angular controller where we inject the ```API``` service, we wi
 
 	app.controller('ListCtrl', function($scope, API, DATA) {
 	
+		$scope.users = [];
+
 		API.listUsers()
 		.success(function(users, status, headers, config) {
 			if(status != 200) {
@@ -263,7 +265,7 @@ From now on, any Angular controller where we inject the ```API``` service, we wi
 		});
 	});
 
-```API.listUsers()``` is the new function we added on ```api.js``` and it returns a **promise**. When the promise is resolved, the function in the ```success``` block will be executed. In case of network error (unrelated to the application), the function inside the ```error``` block will be executed.
+```API.listUsers()``` is the new function we added on ```api.js``` and it returns a **promise**. When the promise is resolved, the function inside the ```success``` block will be executed. In case of a network error (unrelated to the application), the function inside the ```error``` block will be executed.
 
 [More information about promises](https://docs.angularjs.org/api/ng/service/$q).
 
@@ -309,7 +311,7 @@ Once our data is in the ```$scope``` of a controller, we will create an html fil
 	
 	</div>
 
-**NOTE:** You don't need to indicate the ng-controller on the markup. This is being handled in another file. Right below. 
+**NOTE:** You don't need to indicate the ```ng-controller``` on the markup. This is being handled in another file. Right below. 
 
 When the URL is ```http://hostname/#/users```, we want that the new template is injected inside the following HTML tag in ```www/index.html```. 
 
@@ -332,7 +334,9 @@ So we edit ```www/scripts/index.js``` (at the top of it) to add an entry for tha
 			controller: 'ListCtrl'
 		})
 
-When the hash is ```#/user``` Angular will load the new template and will pass its control to the ```ListCtrl``` we showed previously.
+When the hash is ```#/user``` Angular will load the new template and will pass its control to the ```ListCtrl``` we showed previously (so no need to specify an ```ng-controller``` in the markup).
+
+Now we can navigate to any template we define by jumping to its corresponding route on the URL hash. 
 
 ### Sharing data among controllers
 Content loaded from the server is stored in the ```$scope``` of the controller requesting them.
@@ -352,7 +356,7 @@ If we need to share them among controllers, we can use the service ```DATA``` (`
 
 First we assign any value from a controller. When we switch to another controller, our values will stay and they will remain accessible regardless of the ```$scope```.
 
-However, if we exit or reload the page, these contents are going to be lost. To keep them for the first time, we can call ```DATA.persist()``` and now, the next controller injecting the DATA service, will have them restored automatically. 
+However, if we exit or reload the page, these contents are going to be lost. To keep them for the first time, we can call ```DATA.persist()``` and now, the next controller injecting the ```DATA``` service, will have them restored automatically. 
 
 
 # Other
