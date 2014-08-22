@@ -9,10 +9,6 @@ Clone the project into your computer:
 	$ git clone https://github.com/jmoraleda/boilerjs.git .
 	$ cd boilerjs
 
-Next, install the Node dependencies:
-
-	$ npm install
-
 ## Dependencies
 To start the application with fail safety, you will need to install ```forever``` on the server.
 
@@ -26,11 +22,10 @@ Finally, we will need to install the local dependencies of our project.
 
 	$ npm install
 
-# Usage
----
+## Usage
 To manage the app, the following actions are available
 
-	$ cd server
+	$ cd boilerjs
 	$ gulp
 	
 	Usage:
@@ -45,8 +40,7 @@ To manage the app, the following actions are available
 
 The first three ones are intended for the **development environment**. The last three ones are intended to manage the app in a **server**.
 
-# Folder structure
----
+## Folder structure
 These are the files and folders of the project
 
 	README.md               The present file
@@ -65,9 +59,8 @@ These are the files and folders of the project
 	test/                   Folder with your tests
 	www/                    Source code of the HTML application (compiled to 'public')
 
-		
+
 # Development workflow
----
 ## Backend
 ### Configuring the project
 The parameters of the server are defined in ```server.js```
