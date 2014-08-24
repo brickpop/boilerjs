@@ -14,11 +14,11 @@ To start the application with fail safety, you will need to install ```forever``
 
 	$ sudo npm install -g forever
 	
-To manage the app on either environment, we will make use of the ```gulp``` module.
+To manage the app in development and production environments, we will make use of ```gulp```.
 
 	$ sudo npm install -g gulp
 
-Finally, we will need to install the local dependencies of our project.
+Finally, we will need to install the local dependencies of the project.
 
 	$ npm install
 
@@ -30,15 +30,15 @@ To manage the app, the following actions are available
 	
 	Usage:
 	
-	   $ gulp make      Compile the web files to 'public'"
+	   $ gulp make      Compile the web files to 'public'
 	   $ gulp debug     Start the app locally and reload with Nodemon
 	   $ gulp test      Run the test suite located on test/index.js
 	 
-	   $ gulp start     Start the server as a daemon (implies make)
-	   $ gulp restart   Restart the server (implies make)
+	   $ gulp start     Start the server as a daemon (implies gulp make)
+	   $ gulp restart   Restart the server (implies gulp make)
 	   $ gulp stop      Stop the server
 
-The first three ones are intended for the **development environment**. The last three ones are intended to manage the app in a **server**.
+The first three ones are intended for the **development environment**. The last three ones are intended to manage the application in a **server**.
 
 ## Folder structure
 These are the files and folders of the project
@@ -56,7 +56,8 @@ These are the files and folders of the project
 	server.api.js           API handlers definitions
 	server.cache.js         Caching routes/files definition
 	server.js               Server executable
-	test/                   Folder with your tests
+	
+	test/                   Folder with the test suites
 	www/                    Source code of the HTML application (compiled to 'public')
 
 
@@ -72,6 +73,7 @@ The parameters of the server are defined in ```server.js```
 		self.httpPort = 8080;
 		self.httpsPort = 8443;
 		
+		// Features
 		self.useHttp = true;
 		self.useHttps = false;
 		self.useMongoDB = true;
@@ -93,15 +95,15 @@ The parameters of the server are defined in ```server.js```
 
 ##### Notes:
 
-* HTTP/HTTPS ports must be greater than ```1024`` (unless you run the app with root privileges)
-	* Normally you'll set up a proxy server (Apache/nginx) binding the ports 80/443 to the ones defined above
+* HTTP/HTTPS ports must be greater than ```1024``` (unless you plan to run the app with root privileges)
+	* Normally you'll set up a proxy server (Apache/nginx) binding the ports 80/443 to the ones you define above
 * If the MongoDB user/password are empty, the server will attempt to connect without authentication
-* If the HTTP user/password are empty, no HTTP authentication will be requested
-* If ```useHttp``` is false, the keyFile/certFile files will not be read/used
+* Unless you set an HTTP user/password, no HTTP authentication will be requested
+* If ```useHttp``` is false, the keyFile/certFile files will be ignored
 
 ### Creating a model
 
-Let's create (or edit) a file inside the ```models/``` folder with the data schema that we need to store on the DB. For example ```user.js```
+Let's create (or edit) a file inside the ```models/``` folder with the data schema that we want to store on the DB. For example ```user.js```
 
 	// User Model
 	var mongoose = require('mongoose'),
@@ -129,7 +131,7 @@ Let's create (or edit) a file inside the ```models/``` folder with the data sche
 	
 	module.exports = mongoose.model('User', userSchema);
 
-We just created a model called ```User``` which will operate on the ```users``` collection on the server. 
+We just created a model called ```User``` which will use the ```users``` collection on the server. 
 
 ### Using the model in an API callback 
 In the file ```server.api.js``` let's import our new model. Next, we will export a function that generates a list of all the registered users.
@@ -149,14 +151,14 @@ In the file ```server.api.js``` let's import our new model. Next, we will export
 	};
 
 
-This callback will send a JSON response with a list of the users whose status is ```'active'``` and sorted by the field ```score``` descendently. 
+This callback will send a JSON response with a list of the users whose status is ```'active'``` and sort them by the field ```score``` in reverse order. 
 
-For more information about querying with Mongoose [visit this link](http://mongoosejs.com/docs/queries.html).
+[More information about querying with Mongoose](http://mongoosejs.com/docs/queries.html)
 
-### Enabling the new callback to handle an API route
+### Assigning an API route to the new callback
 At the bottom of the same file (```server.api.js```), let's locate the function ```getRoutes``` and declare a route+callback(s) for the function we just added.
 
-Depending on the HTTP method that we need, we will add it in its corresponding section (GET, POST, PUT, DELETE).
+Depending on the HTTP method we need, we will add it in its corresponding section (GET, POST, PUT, DELETE).
 
     // API ROUTE LIST
     exports.getRoutes = function () {
@@ -179,7 +181,7 @@ Depending on the HTTP method that we need, we will add it in its corresponding s
       };
     };
 
-Now, when a request is made to ```/api/users``` the new function will handle the result.
+Now, when a request is made to ```/api/users``` the new function in ```server.api.js``` will handle the result.
 
 Some functions may need to check various conditions before they serve the actual data (authentication status). That's why instead of assigning the path to a single callback, this block allows to define an (ordered) array of them. 
 
@@ -199,7 +201,7 @@ This allows us to perform validation checks in earlier callbacks that will inter
 	    res.redirect('/login');
 	  }
 	}
-When an ExpressJS callback ends with ```next()```, the next callback is executed (in this case ```exports.createUser```). If a response is sent, no further processing is performed. 
+When an ExpressJS callback ends with ```next()```, the next callback is executed (in this case ```exports.createUser```). If a response is sent instead, no further processing is performed. 
 
 [See this link](https://github.com/strongloop/express/blob/master/examples/auth/app.js) for a complete ExpressJS session management example. 
 
@@ -208,7 +210,7 @@ When an ExpressJS callback ends with ```next()```, the next callback is executed
 
 ## Frontend
 ### API calls
-To use the API we defined on the backent, first we need to edit ```www/scripts/api.js``` and create a new entry on the API factory. It must match the URL path we chose previously and provide the necessary parameters (if any).
+To use the API we defined on the backend, first we need to edit ```www/scripts/api.js``` and create a new entry on the API factory. It must match the URL path we chose previously and include the necessary parameters (if any).
 
 	.factory('API', function($http) {
 	  return {
@@ -231,7 +233,7 @@ To use the API we defined on the backent, first we need to edit ```www/scripts/a
 	  }
 	})
 
-From now on, any Angular controller where we inject the ```API``` service, we will be able to invoke the new API like this: 
+From now on, any Angular controller where the ```API``` service is injected, will allow us to invoke the new server call like this: 
 
 
 	app.controller('ListCtrl', function($scope, API, DATA) {
@@ -265,7 +267,7 @@ From now on, any Angular controller where we inject the ```API``` service, we wi
 		});
 	});
 
-```API.listUsers()``` is the new function we added on ```api.js``` and it returns a **promise**. When the promise is resolved, the function inside the ```success``` block will be executed. In case of a network error (unrelated to the application), the function inside the ```error``` block will be executed.
+```API.listUsers()``` is the new function we added on ```api.js``` and it returns a **promise**. When the promise is resolved, the function inside the ```success``` block will be executed. In case of a network error (unrelated to the application logic), the function inside the ```error``` block will be executed.
 
 [More information about promises](https://docs.angularjs.org/api/ng/service/$q).
 
@@ -311,13 +313,13 @@ Once our data is in the ```$scope``` of a controller, we will create an html fil
 	
 	</div>
 
-**NOTE:** You don't need to indicate the ```ng-controller``` on the markup. This is being handled in another file. Right below. 
+**NOTE:** You don't need to indicate the ```ng-controller``` on the markup. This is being handled in another file. (See below)
 
 When the URL is ```http://hostname/#/users```, we want that the new template is injected inside the following HTML tag in ```www/index.html```. 
 
 	<div ng-view autoscroll="true" class="view-slide-in"></div>
 
-So we edit ```www/scripts/index.js``` (at the top of it) to add an entry for that:
+So let's edit ```www/scripts/index.js``` (at the top of it) to add an entry for that:
 
 	app.config(function($routeProvider) {
 		$routeProvider
@@ -334,14 +336,14 @@ So we edit ```www/scripts/index.js``` (at the top of it) to add an entry for tha
 			controller: 'ListCtrl'
 		})
 
-When the hash is ```#/user``` Angular will load the new template and will pass its control to the ```ListCtrl``` we showed previously (so no need to specify an ```ng-controller``` in the markup).
+When the hash is ```#/user``` Angular will load the new template and will pass its control to the ```ListCtrl``` controller we showed previously (so no need to specify an ```ng-controller``` in the markup).
 
 Now we can navigate to any template we define by jumping to its corresponding route on the URL hash. 
 
 ### Sharing data among controllers
-Content loaded from the server is stored in the ```$scope``` of the controller requesting them.
+Content loaded from the server is stored in the ```$scope``` of the controller requesting them. However, if we leave the controller and jump to another one, this information is lost. 
 
-If we need to share them among controllers, we can use the service ```DATA``` (```www/scripts/api.js```), injecting it wherever we need to access global (and/or persistent) local content. 
+If we want to share content among controllers, we can use the ```DATA``` service (```www/scripts/api.js```), injecting it wherever we need to access global (or persistent) content. 
 
 	app.controller('StartCtrl', function($scope, API, DATA) {
 	
@@ -354,9 +356,9 @@ If we need to share them among controllers, we can use the service ```DATA``` (`
 	    console.log(DATA.users);  // will print [ {name: "Jordi"}, {name: "John"} ]
 	});
 
-First we assign any value from a controller. When we switch to another controller, our values will stay and they will remain accessible regardless of the ```$scope```.
+First we assign any value from a controller. When we switch to another one, our values will stay and will remain accessible regardless of the ```$scope```.
 
-However, if we exit or reload the page, these contents are going to be lost. To keep them for the first time, we can call ```DATA.persist()``` and now, the next controller injecting the ```DATA``` service, will have them restored automatically. 
+However, if we exit or reload the page, these contents will be lost. To keep them in memory we can call ```DATA.persist()```. Now, the next controller injecting the ```DATA``` service, will have them restored automagically. 
 
 
 # Other
