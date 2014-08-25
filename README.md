@@ -31,7 +31,7 @@ To manage the app, the following actions are available
 	Usage:
 	
 	   $ gulp make      Compile the web files to 'public'
-	   $ gulp debug     Start the app locally and reload with Nodemon
+	   $ gulp debug     Compile, start the app locally and reload with Nodemon
 	   $ gulp test      Run the test suite located on test/index.js
 	 
 	   $ gulp start     Start the server as a daemon (implies gulp make)
@@ -91,6 +91,7 @@ The parameters of the server are defined in ```server.js```
 		// SSL Certificates
 		self.keyFile = './resources/host';
 		self.certFile = './resources/host.crt';
+		self.caFile = '/etc/pki/tls/certs/ca-bundle.crt';
     };
 
 ##### Notes:
@@ -99,7 +100,8 @@ The parameters of the server are defined in ```server.js```
 	* Normally you'll set up a proxy server (Apache/nginx) binding the ports 80/443 to the ones you define above
 * If the MongoDB user/password are empty, the server will attempt to connect without authentication
 * Unless you set an HTTP user/password, no HTTP authentication will be requested
-* If ```useHttp``` is false, the keyFile/certFile files will be ignored
+* If ```useHttps``` is false, the keyFile/certFile files will be ignored
+	* If a ```self.caFile``` is not provided, only the private/public keys will be used
 
 ### Creating a model
 
@@ -197,14 +199,12 @@ This allows us to perform validation checks in earlier callbacks that will inter
 	  if (req.session.user) {
 	    next();
 	  } else {
-	    req.session.error = 'Access is denied!';
-	    res.redirect('/login');
+	    res.send({error: "You need to log in"});
 	  }
 	}
 When an ExpressJS callback ends with ```next()```, the next callback is executed (in this case ```exports.createUser```). If a response is sent instead, no further processing is performed. 
 
 [See this link](https://github.com/strongloop/express/blob/master/examples/auth/app.js) for a complete ExpressJS session management example. 
-
 
 
 
@@ -267,9 +267,11 @@ From now on, any Angular controller where the ```API``` service is injected, wil
 		});
 	});
 
-```API.listUsers()``` is the new function we added on ```api.js``` and it returns a **promise**. When the promise is resolved, the function inside the ```success``` block will be executed. In case of a network error (unrelated to the application logic), the function inside the ```error``` block will be executed.
+```API.listUsers()``` is the new function we added on ```api.js``` and it returns a **promise**, not the actual value.
 
 [More information about promises](https://docs.angularjs.org/api/ng/service/$q).
+
+When the promise is resolved, the function inside the ```success``` block will be executed. In case of a network error (unrelated to the application logic), the function inside the ```error``` block will be executed.
 
 ### View templates
 Once our data is in the ```$scope``` of a controller, we will create an html file on the ```www/views``` folder. For example ```user.html```
@@ -363,7 +365,9 @@ However, if we exit or reload the page, these contents will be lost. To keep the
 
 # Other
 ## WYSWYG Node friendly editors
-* https://github.com/jejacks0n/mercury
-* http://nicedit.com/
-* http://www.aloha-editor.org/
-* https://www.raptor-editor.com/demo
+* [CKEditor](http://ckeditor.com/)
+	* [Image upload (ExpressJS)](http://portalstack.blogspot.com.es/2013/07/basic-ckeditor-4-image-uploader-with.html)
+* [https://github.com/jejacks0n/mercury](https://github.com/jejacks0n/mercury)
+* [http://nicedit.com/](http://nicedit.com/)
+* [http://www.aloha-editor.org/](http://www.aloha-editor.org/)
+* [https://www.raptor-editor.com/demo](https://www.raptor-editor.com/demo)

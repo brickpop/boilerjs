@@ -127,11 +127,11 @@ gulp.task('make', ['clean'], function() {
 gulp.task('default', function() {
   console.log("\nAvailable actions:\n");
   console.log("   $ gulp make       Compile the web files to 'public'");
-  console.log("   $ gulp dev        Start the app locally and reload with Nodemon");
+  console.log("   $ gulp debug      Compile, start the app locally and reload with Nodemon");
   console.log("   $ gulp test       Run the test suite located on test/index.js\n");
   console.log("  ");
-  console.log("   $ gulp start      Start the server as a daemon");
-  console.log("   $ gulp restart    Restart the server");
+  console.log("   $ gulp start      Start the server as a daemon (implies gulp make)");
+  console.log("   $ gulp restart    Restart the server (implies gulp make)");
   console.log("   $ gulp stop       Stop the server\n");
   console.log("  ");
 });
