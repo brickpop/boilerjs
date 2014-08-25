@@ -36,7 +36,8 @@ var TemplateApp = function() {
 
 		// SSL Certificates
 		self.keyFile = '/etc/pki/tls/private/localhost.key';
-		self.certFile = '/etc/pki/tls/certs/localhost.crt';
+        self.certFile = '/etc/pki/tls/certs/localhost.crt';
+		self.caFile = '/etc/pki/tls/certs/ca-bundle.crt';
     };
 
     // LIFECYCLE
@@ -96,15 +97,15 @@ var TemplateApp = function() {
 
         // SERVER SETTINGS
         self.app.configure(function(){
-          self.app.use(express.bodyParser());
-          self.app.use(express.methodOverride());
-          self.app.use(self.app.router);
+            self.app.use(express.bodyParser());
+            self.app.use(express.methodOverride());
+            self.app.use(self.app.router);
 
-          if(self.httpUser && self.httpPassword) {
-              self.app.use(express.basicAuth(self.httpUser, self.password));
-          }
-          self.app.use(express.static('./public'));
-      });
+            if(self.httpUser && self.httpPassword) {
+                self.app.use(express.basicAuth(self.httpUser, self.password));
+            }
+            self.app.use(express.static('./public'));
+        });
 
         self.initializeCacheRoutes();
         self.initializeAPIRoutes();
@@ -113,7 +114,11 @@ var TemplateApp = function() {
         if(self.useHttps) {
             self.privateKey  = fs.readFileSync(parameters.keyFile, 'utf8');
             self.certificate = fs.readFileSync(parameters.certFile, 'utf8');
+
             self.sslCredentials = {key: privateKey, cert: certificate};
+            
+            if(self.caFile)
+                self.ca = fs.readFileSync(parameters.caFile, 'utf8');
         }
 
         // DATABASE
