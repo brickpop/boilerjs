@@ -1,6 +1,6 @@
 // Load plugins
 var gulp = require('gulp'),
-    sass = require('gulp-ruby-sass'),
+    sass = require('gulp-sass'),
     autoprefixer = require('gulp-autoprefixer'),
     minifycss = require('gulp-minify-css'),
     jshint = require('gulp-jshint'),
@@ -27,7 +27,7 @@ gulp.task('images', function() {
 // STYLE
 gulp.task('scss', function() {
   return gulp.src(['www/styles/index.scss', 'www/styles/dashboard/*.css', 'www/styles/themes/blue.css'])
-    .pipe(sass({ style: 'expanded' }))
+    .pipe(sass())
     .pipe(concat('index.css'))
     .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 2.3'))
     .pipe(rename({ suffix: '.min' }))

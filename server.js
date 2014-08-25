@@ -78,16 +78,24 @@ var TemplateApp = function() {
 
         var apiRoutes = api.getRoutes();
         for(var g in apiRoutes.get) {
-            self.app.get(g, apiRoutes.get[g]);
+            if(apiRoutes.get.hasOwnProperty(g)) {
+                self.app.get(g, apiRoutes.get[g]);
+            }
         }
         for(var p in apiRoutes.post) {
-            self.app.post(p, apiRoutes.post[p]);
+            if(apiRoutes.post.hasOwnProperty(g)) {
+                self.app.post(p, apiRoutes.post[p]);
+            }
         }
         for(var t in apiRoutes.put) {
-            self.app.put(t, apiRoutes.put[t]);
+            if(apiRoutes.put.hasOwnProperty(g)) {
+                self.app.put(t, apiRoutes.put[t]);
+            }
         }
         for(var d in apiRoutes.delete) {
-            self.app.delete(d, apiRoutes.delete[d]);
+            if(apiRoutes.delete.hasOwnProperty(g)) {
+                self.app.delete(d, apiRoutes.delete[d]);
+            }
         }
     };
 
