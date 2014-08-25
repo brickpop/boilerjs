@@ -67,7 +67,9 @@ var TemplateApp = function() {
         // see server.cache.js
         var cacheRoutes = cache.getRoutes();
         for (var c in cacheRoutes) {
-            self.app.get(c, cacheRoutes[c]);
+            if(cacheRoutes.hasOwnProperty(c)) {
+                self.app.get(c, cacheRoutes[c]);
+            }
         }
     }; 
 

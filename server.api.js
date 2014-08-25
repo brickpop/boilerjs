@@ -68,49 +68,11 @@ exports.events = function(req, res) {
   var threshold = new Date();
   threshold.setDate(threshold.getDate()-5);
 
-  EventModel.find()
+  Event.find()
   // .where('date').gt(threshold)
   .sort('-date')
   .exec(function(err, events){
     res.send(events);
-  });
-};
-
-// UPLOAD CKEDITOR IMAGE
-exports.upload = function(req, res) {
-  var dest, fileName, fs, l, tmpPath;
-  
-  fs = require('fs');
-  
-  tmpPath = req.files.upload.path;
-  l = tmpPath.split('/').length;
-  fileName = tmpPath.split('/')[l - 1] + "_" + req.files.upload.name;
-  
-  dest = __dirname + "/public/upload/" + fileName;
-  fs.readFile(req.files.upload.path, function(err, data) {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    
-    fs.writeFile(dest, data, function(err) {
-      var html;
-      if (err) {
-        console.log(err);
-        return;
-      }
-      
-      html = "";
-      html += "<script type='text/javascript'>";
-      html += "    var funcNum = " + req.query.CKEditorFuncNum + ";";
-      html += "    var url     = \"/uploads/" + fileName + "\";";
-      html += "    var message = \"Uploaded file successfully\";";
-      html += "";
-      html += "    window.parent.CKEDITOR.tools.callFunction(funcNum, url, message);";
-      html += "</script>";
-      
-      res.send(html);
-    });
   });
 };
 
@@ -126,8 +88,7 @@ exports.getRoutes = function () {
       '/api/events': [ exports.events ]
     },
     post: {
-      '/api/users': [ exports.createUser ],
-      '/api/upload': [ exports.upload ]
+      '/api/users': [ exports.createUser ]
     },
     put: {
       '/api/users/:id': [ exports.updateUser ]
