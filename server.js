@@ -42,11 +42,12 @@ var TemplateApp = function() {
 
     // LIFECYCLE
     self.terminator = function(signal){
-        if (typeof signal === "string") {
-         console.log('%s: Received %s - terminating app ...', Date(Date.now()), signal);
-         process.exit(1);
-     }
-     console.log('%s: Node server stopped.', Date(Date.now()) );
+        console.log('%s: Received %s...', Date(Date.now()), signal);
+        if (typeof signal === "string" && signal != "SIGUSR2") {
+            process.exit(1);
+            console.log('%s: Node server stopped.', Date(Date.now()) );
+        }
+    }
  };
 
  self.initializeTerminationHandlers = function(){
