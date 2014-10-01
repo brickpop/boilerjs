@@ -42,23 +42,20 @@ var TemplateApp = function() {
 
     // LIFECYCLE
     self.terminator = function(signal){
-        if(!signal) return;
+        if(!signal || typeof signal != "string") return console.log('%s: The app is terminating...', Date(Date.now()));
         
         console.log('%s: Received %s...', Date(Date.now()), signal);
-        if (typeof signal === "string" && signal != "SIGUSR2") {
-            console.log('%s: Node server stopped.', Date(Date.now()) );
-            process.exit(1);
-        }
+        process.exit(1);
     }
  };
 
  self.initializeTerminationHandlers = function(){
 
-    process.on('exit', function() { self.terminator(); });
+	process.on('exit', function() { self.terminator(); });
 
         // Removed 'SIGPIPE' from the list - bugz 852598.
         ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
-        'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
+        'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV'/*, 'SIGUSR2'*/, 'SIGTERM'
         ].forEach(function(element, index, array) {
             process.on(element, function() { self.terminator(element); });
         });
