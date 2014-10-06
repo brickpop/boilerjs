@@ -47,9 +47,8 @@ var TemplateApp = function() {
         console.log('%s: Received %s...', Date(Date.now()), signal);
         process.exit(1);
     }
- };
 
- self.initializeTerminationHandlers = function(){
+    self.initializeTerminationHandlers = function(){
 
 	process.on('exit', function() { self.terminator(); });
 
@@ -159,11 +158,10 @@ var TemplateApp = function() {
      }
 
      console.log("Server listening on port", self.useHttp ? self.httpPort : "", self.useHttps ? self.httpsPort : "");
- };
+   };
 };
 
 // MAIN
 var zapp = new TemplateApp();
 zapp.initialize();
 zapp.start();
-
