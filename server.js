@@ -84,17 +84,17 @@ var TemplateApp = function() {
             }
         }
         for(var p in apiRoutes.post) {
-            if(apiRoutes.post.hasOwnProperty(g)) {
+            if(apiRoutes.post.hasOwnProperty(p)) {
                 self.app.post(p, apiRoutes.post[p]);
             }
         }
         for(var t in apiRoutes.put) {
-            if(apiRoutes.put.hasOwnProperty(g)) {
+            if(apiRoutes.put.hasOwnProperty(t)) {
                 self.app.put(t, apiRoutes.put[t]);
             }
         }
         for(var d in apiRoutes.delete) {
-            if(apiRoutes.delete.hasOwnProperty(g)) {
+            if(apiRoutes.delete.hasOwnProperty(d)) {
                 self.app.delete(d, apiRoutes.delete[d]);
             }
         }
