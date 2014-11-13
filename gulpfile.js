@@ -138,7 +138,7 @@ gulp.task('default', function() {
 
 // MAIN TASKS
 gulp.task('debug', ['make'], function () {
-  nodemon({ script: 'server.js', ext: 'html jade js css scss ', ignore: ['www', 'node_modules'], nodeArgs: ['--debug'] })
+  nodemon({ script: 'server.js', ext: 'html jade js css scss ', ignore: ['public', 'node_modules'], nodeArgs: ['--debug'] })
     .on('change', ['make'])
     .on('restart', function () {
       console.log('App restarted')
