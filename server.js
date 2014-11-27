@@ -111,7 +111,7 @@ var TemplateApp = function() {
             self.app.use(self.app.router);
 
             if(self.httpUser && self.httpPassword) {
-                self.app.use(express.basicAuth(self.httpUser, self.password));
+                self.app.use(express.basicAuth(self.httpUser, self.httpPassword));
             }
             self.app.use(express.static('./public'));
         });
