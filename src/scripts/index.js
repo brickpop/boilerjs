@@ -1,5 +1,5 @@
 // ANGULAR
-var app = angular.module('admin', ['ui.bootstrap', 'ngCookies', 'ngRoute', 'ngAnimate', 'admin.services']);
+var app = angular.module('boilerjs', ['ui.bootstrap', 'ngCookies', 'ngRoute', 'ngAnimate', 'boilerjs.services']);
 
 app.config(function($routeProvider) {
 	$routeProvider

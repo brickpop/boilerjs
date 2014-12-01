@@ -1,7 +1,7 @@
 
 // SERVEI DE L'API
 
-angular.module('admin.services', [])
+angular.module('boilerjs.services', [])
 
 .factory('API', function($http) {
   return {

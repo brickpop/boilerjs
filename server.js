@@ -5,40 +5,15 @@ var http = require('http');
 var https = require('https');
 var express = require('express');
 var mongoose = require('mongoose');
-var api = require(__dirname + '/server.api.js');
-var cache = require(__dirname + '/server.cache.js');
+var config = require('./controllers/config.js');
+var api = require(__dirname + '/controllers/server.api.js');
+var cache = require(__dirname + '/controllers/server.cache.js');
 
 
-var TemplateApp = function() {
+var BoilerJsApp = function() {
 
     var self = this;
-
-    self.setupVariables = function() {
-
-        self.path = __dirname;
-
-        self.httpPort = 8080;
-        self.httpsPort = 8443;
-
-        self.useHttp = true;
-        self.useHttps = false;
-        self.useMongoDB = true;
-
-        // Mongo DB
-        self.dbHost = "localhost";
-        self.dbName = "dbname";
-        self.dbUser = "";
-        self.dbPassword = "";
-
-        // HTTP Authentication
-        self.httpUser = "";
-        self.httpPassword = "";
-
-		// SSL Certificates
-		self.keyFile = '/etc/pki/tls/private/localhost.key';
-        self.certFile = '/etc/pki/tls/certs/localhost.crt';
-		self.caFile = '/etc/pki/tls/certs/ca-bundle.crt';
-    };
+    self.path = __dirname;
 
     // LIFECYCLE
     self.terminator = function(signal){
@@ -46,15 +21,15 @@ var TemplateApp = function() {
         
         console.log('%s: Received %s...', Date(Date.now()), signal);
         process.exit(1);
-    }
+    };
 
     self.initializeTerminationHandlers = function(){
 
-	process.on('exit', function() { self.terminator(); });
+        process.on('exit', function() { self.terminator(); });
 
         // Removed 'SIGPIPE' from the list - bugz 852598.
         ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
-        'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV'/*, 'SIGUSR2'*/, 'SIGTERM'
+        'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGTERM' //, 'SIGUSR2'
         ].forEach(function(element, index, array) {
             process.on(element, function() { self.terminator(element); });
         });
@@ -100,68 +75,112 @@ var TemplateApp = function() {
         }
     };
 
-    self.initializeServer = function() {
+    self.initializeServer = function(doneCallback) {
 
         self.app = express();
+        
+        self.app.use(express.bodyParser());
+        self.app.use(express.methodOverride());
 
         // SERVER SETTINGS
-        self.app.configure(function(){
-            self.app.use(express.bodyParser());
-            self.app.use(express.methodOverride());
-            self.app.use(self.app.router);
-
-            if(self.httpUser && self.httpPassword) {
-                self.app.use(express.basicAuth(self.httpUser, self.httpPassword));
-            }
-            self.app.use(express.static('./public'));
+        self.app.all(/.*/, function(req, res, next) {
+          var host = req.header("host");
+          if(host == config.BOILERJS_DOMAIN)
+            res.redirect(301, "http://www." + config.BOILERJS_DOMAIN);
+          else
+            return next();
         });
-
+        
+        if(config.BOILERJS_HTTP_USER && config.BOILERJS_HTTP_PASSWORD) {
+            self.app.use(express.basicAuth(config.BOILERJS_HTTP_USER, config.BOILERJS_HTTP_PASSWORD));
+        }
+        self.app.use(self.app.router);
         self.initializeCacheRoutes();
+        self.app.use(express.static('./www'));
         self.initializeAPIRoutes();
 
         // SSL
-        if(self.useHttps) {
-            self.privateKey  = fs.readFileSync(parameters.keyFile, 'utf8');
-            self.certificate = fs.readFileSync(parameters.certFile, 'utf8');
+        if(config.BOILERJS_USE_HTTPS) {
+            self.privateKey  = fs.readFileSync(config.BOILERJS_KEY_FILE, 'utf8');
+            self.certificate = fs.readFileSync(config.BOILERJS_CERT_FILE, 'utf8');
 
             self.sslCredentials = {key: privateKey, cert: certificate};
             
-            if(self.caFile)
-                self.ca = fs.readFileSync(parameters.caFile, 'utf8');
+            if(config.BOILERJS_CA_FILE)
+                self.ca = fs.readFileSync(config.BOILERJS_CA_FILE, 'utf8');
         }
 
         // DATABASE
-        if(self.useMongoDB && self.dbUser && self.dbPassword)
-            mongoose.connect('mongodb://' + self.dbUser + ':' + self.dbPassword + '@' + self.dbHost + '/' + self.dbName);
-        else if(self.useMongoDB)
-            mongoose.connect('mongodb://' + self.dbHost + '/' + self.dbName);
+        if(config.BOILERJS_USE_MONGODB) {
+
+            // Check that the server is listening
+            var net = require('net');
+            var s = new net.Socket();
+        
+            var timeout = 2000;
+            s.setTimeout(timeout, function() { s.destroy(); });
+            s.connect(config.BOILERJS_MONGODB_PORT, config.BOILERJS_MONGODB_HOST, function() {
+                // PORT IS OPEN
+                var mongoStr; 
+                if(config.BOILERJS_MONGODB_USER && config.BOILERJS_MONGODB_PASSWORD)
+                    mongoStr = 'mongodb://' + config.BOILERJS_MONGODB_USER + ':' + config.BOILERJS_MONGODB_PASSWORD + '@' + config.BOILERJS_MONGODB_HOST + ":" + config.BOILERJS_MONGODB_PORT + '/' + config.BOILERJS_MONGODB_DB;
+                else
+                    mongoStr = 'mongodb://' + config.BOILERJS_MONGODB_HOST + ':' + config.BOILERJS_MONGODB_PORT + "/" + config.BOILERJS_MONGODB_DB;
+
+                // MongoDB Event Handlers
+                mongoose.connection.on('connecting', function() { console.log('%s - Connecting to MongoDB...', (new Date()).toJSON()); });
+                mongoose.connection.on('error', function(error) {
+                    console.error('%s - Error in MongoDB connection: ' + error, (new Date()).toJSON());
+                    mongoose.disconnect();
+                });
+                mongoose.connection.on('connected', function() { console.log('%s - MongoDB connected', (new Date()).toJSON()); });
+                mongoose.connection.once('open', function() { console.log('%s - MongoDB connection opened', (new Date()).toJSON()); });
+                mongoose.connection.on('reconnected', function () { console.log('%s - MongoDB reconnected', (new Date()).toJSON()); });
+                mongoose.connection.on('disconnected', function() {
+                    console.log('%s - MongoDB disconnected!', (new Date()).toJSON());
+                    mongoose.connect(mongoStr, {server: {auto_reconnect:true}});
+                });
+
+                mongoose.connect(mongoStr, {server: {auto_reconnect:true}});
+
+                doneCallback();
+            });
+            s.on('data', function(e) {});
+            s.on('error', function(e) {
+                console.log("-----");
+                console.log("ERROR: The Mongo DB Server is not available");
+                console.log("-----");
+                s.destroy();
+                process.exit();
+            });
+        }
     };
 
-    self.initialize = function() {
-        self.setupVariables();
+    self.initialize = function(cb) {
         cache.populate();
         self.initializeTerminationHandlers();
-        self.initializeServer();
+        self.initializeServer(cb);
     };
 
     self.start = function() {
 
         // START SERVER
         var httpServer, httpsServer;
-        if(self.useHttp) {
-         httpServer = http.createServer(self.app);
-         httpServer.listen(self.httpPort);
-     }
-     if(self.useHttps) {
-         httpsServer = https.createServer(sslCredentials, self.app);
-         httpsServer.listen(self.httpsPort);
-     }
+        if(config.BOILERJS_USE_HTTP) {
+            httpServer = http.createServer(self.app);
+            httpServer.listen(config.BOILERJS_HTTP_PORT);
+        }
+        if(config.BOILERJS_USE_HTTPS) {
+            httpsServer = https.createServer(self.sslCredentials, self.app);
+            httpsServer.listen(config.BOILERJS_HTTPS_PORT);
+        }
 
-     console.log("Server listening on port", self.useHttp ? self.httpPort : "", self.useHttps ? self.httpsPort : "");
-   };
+        console.log(config.BOILERJS_APP_NAME + " listening on port(s)", config.BOILERJS_USE_HTTP ? config.BOILERJS_HTTP_PORT : "", config.BOILERJS_USE_HTTPS ? config.BOILERJS_HTTPS_PORT : "", "\n");
+    };
 };
 
 // MAIN
-var zapp = new TemplateApp();
-zapp.initialize();
-zapp.start();
+var boilerJsApp = new BoilerJsApp();
+boilerJsApp.initialize(boilerJsApp.start);
+
+

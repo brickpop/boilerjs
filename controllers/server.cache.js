@@ -2,8 +2,8 @@ var localCache = {};
 var fs = require('fs');
 
 exports.populate = function() {
-    localCache['/'] = fs.readFileSync(__dirname + '/public/index.html');
-    localCache['/index.html'] = fs.readFileSync(__dirname + '/public/index.html');
+    // localCache['/'] = fs.readFileSync(__dirname + '/www/index.html');
+    // localCache['/index.html'] = fs.readFileSync(__dirname + '/www/index.html');
 };
 
 exports.get = function(key) {

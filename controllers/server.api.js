@@ -1,5 +1,7 @@
-var User = require('./models/user.js');
-var Event = require('./models/event.js');
+var config = require('./config.js');
+
+var User = require('../models/user.js');
+var Events = require('../models/event.js');
 
 // API CALLBACKS 
 
@@ -65,10 +67,13 @@ exports.removeUser = function(req, res) {
 // EVENTS
 
 exports.events = function(req, res) {
+
+  // config.BOILERJS_APP_NAME
+
   var threshold = new Date();
   threshold.setDate(threshold.getDate()-5);
 
-  Event.find()
+  Events.find()
   // .where('date').gt(threshold)
   .sort('-date')
   .exec(function(err, events){
@@ -77,24 +82,32 @@ exports.events = function(req, res) {
 };
 
 
+// Check session status
+function checkLogin(req, res, next) {
+
+  next();
+
+}
+
+
 /* DO NOT REMOVE THIS FUNCTION */
 
 // API ROUTE LIST
 exports.getRoutes = function () {
   return {
     get: {
-      '/api/users': [ exports.listUsers ],    // array of callbacks for the api route
+      '/api/users': [ checkLogin, exports.listUsers ],    // array of callbacks for the api route
       '/api/users/:id': [ exports.getUser ],
       '/api/events': [ exports.events ]
     },
     post: {
-      '/api/users': [ exports.createUser ]
+      '/api/users': [ checkLogin, exports.createUser ]
     },
     put: {
-      '/api/users/:id': [ exports.updateUser ]
+      '/api/users/:id': [ checkLogin, exports.updateUser ]
     },
     'delete': {
-      '/api/users/:id': [ exports.removeUser ]
+      '/api/users/:id': [ checkLogin, exports.removeUser ]
     }
   };
 };
